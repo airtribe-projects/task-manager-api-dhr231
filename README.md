@@ -47,7 +47,6 @@ Body:
 "title": "Do homework",
 "description": "Math quiz",
 "completed": false,
-"priority": "medium"
 }
 Success response:
 201 Created with the new task object including id and createdAt
@@ -57,9 +56,6 @@ Error response:
 GET /tasks
 Request:
 GET http://localhost:3000/tasks
-Optional query parameters:
-completed=true|false
-sort=asc|desc
 Success response:
 200 OK with array of tasks (possibly filtered or sorted)
 
@@ -73,7 +69,6 @@ Used for partial updates. Fields optional.
 Body example:
 {
 "completed": true,
-"priority": "high"
 }
 Responses:
 200 OK with updated task
@@ -87,7 +82,6 @@ Body:
 "title": "New title",
 "description": "New desc",
 "completed": true,
-"priority": "low"
 }
 Responses:
 200 OK with replaced task
@@ -99,12 +93,6 @@ Example: DELETE http://localhost:3000/tasks/3
 Response:
 204 No Content if deleted
 404 Not Found if task doesn’t exist
-
-GET /tasks/priority/:level
-Example: GET http://localhost:3000/tasks/priority/high
-Response:
-200 OK with tasks filtered by priority
-400 Bad Request if priority level invalid
 
 Examples:
 Create task:
