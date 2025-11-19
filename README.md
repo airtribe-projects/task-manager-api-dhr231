@@ -16,26 +16,6 @@ Each task has:
 Features include querying by completion status, sorting by creation date,
 and filtering by priority level.
 
-Setup Instructions:
-
-1. Clone the repository:
-   git clone <repository-url>
-   cd <project-folder>
-
-2. Install dependencies:
-   npm install
-
-3. (Optional) Install nodemon for auto-reload:
-   npm install -g nodemon
-
-4. Run the server:
-   nodemon index.js
-   or
-   node index.js
-   The server listens on port 3000 by default.
-
-5. Test the API using Postman, curl, or another HTTP client.
-
 API Endpoints:
 
 POST /tasks
@@ -64,17 +44,6 @@ Example: GET http://localhost:3000/tasks/2
 Success response: 200 OK with that task object
 Error response: 404 Not Found if id doesn’t exist
 
-PATCH /tasks/:id
-Used for partial updates. Fields optional.
-Body example:
-{
-"completed": true,
-}
-Responses:
-200 OK with updated task
-400 Bad Request for validation errors
-404 Not Found if task not found
-
 PUT /tasks/:id
 Used for full replace. All fields required.
 Body:
@@ -93,17 +62,3 @@ Example: DELETE http://localhost:3000/tasks/3
 Response:
 204 No Content if deleted
 404 Not Found if task doesn’t exist
-
-Examples:
-Create task:
-POST /tasks
-Response: 201 Created with new task
-
-Technologies Used:
-• Node.js
-• Express.js
-• express-validator
-• In-memory JS data structure (no database)
-
-License:
-MIT License

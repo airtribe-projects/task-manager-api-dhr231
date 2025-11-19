@@ -1,136 +1,99 @@
+
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+
+
 const app = express();
+let tasks = [
+    { id: 1, title: "Finish GET /tasks", description: "Write all the boilerplate code for the first endpoint.", completed: true },
+    { id: 2, title: "Implement POST", description: "Implement the route to create a new task.", completed: false },
+    { id: 3, title: "Go Roaming", description: "Leave the apartment and waste time with friend.", completed: false }
+];
 const PORT = 3000;
-const tasks = [];
-let nextId = 1;
-let userId = 1;
+
 app.use(express.json());
 
-const handleValidation = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            errors: errors.array().map(err => ({
-                field: err.param,
-                message: err.msg
-            }))
-        });
-    }
-    next();
-};
-//To check if server is running.
-app.get('/', (req, res) => {
-    res.send("Server is running");
+app.get('/tasks', (req, res) => {
+    res.json(tasks);
 });
 
-//POST method
-app.post('/tasks',
-    [body('title').exists().withMessage('Title is required').isString().withMessage('Title must be a string').isLength({ min: 3 }).withMessage('Title must be at least 3 characters'),
-    body('description').optional().isString(),
-    body('completed').optional().isBoolean(),
-        handleValidation
-    ],
-    (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const { title, description = '', completed = false } = req.body;
-        const newTask = { id: nextId++, title, description, completed };
-        tasks.push(newTask);
-        res.status(201).json(newTask);
-    }
-)
-
-//GET Method for all tasks.
-app.get(`/tasks`, (req, res) => {
-    res.json(tasks);
-})
-
-//GET Method for specific ID. 
 app.get('/tasks/:id', (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const task = tasks.find(t => t.id === id);
+
+    const taskId = parseInt(req.params.id);
+
+    const task = tasks.find(t => t.id === taskId);
+
     if (!task) {
-        return res.status(404).json({ error: `Task with id ${id} not found` });
+        return res.status(404).json({ message: 'Task not found.' });
     }
+
     res.json(task);
-})
+});
 
-//PATCH Method for specific ID.
-app.patch('/tasks/:id',
-    [
-        body('title').optional().isString().withMessage('Title must be a string').isLength({ min: 3 }).withMessage('Title must be at least 3 characters'),
-        body('description').optional().isString(),
-        body('completed').optional().isBoolean().withMessage('Completed must be a boolean'),
-        handleValidation
-    ],
-    (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(404).json({ error: errors.array() });
-        }
+app.post('/tasks', (req, res) => {
 
-        const id = parseInt(req.params.id, 10);
-        const task = tasks.find(t => t.id === id);
-        if (!task) {
-            return res.status(404).json({ error: `Task with id ${id} not found` });
-        }
+    const { title, description, completed } = req.body;
 
-        const { title, description, completed } = req.body;
-        if (title !== undefined) task.title = title;
-        if (description !== undefined) task.description = description;
-        if (completed !== undefined) task.completed = completed;
-
-        res.json(task);
-    });
-
-
-//PUT method implemenation with specific ID
-app.put(
-    '/tasks/:id',
-    [
-        body('title').exists().isString().isLength({ min: 3 }),
-        body('description').exists().isString(),
-        body('completed').exists().isBoolean(),
-        handleValidation
-    ],
-    (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const id = parseInt(req.params.id, 10);
-        const idx = tasks.findIndex(t => t.id === id);
-        if (idx === -1) {
-            return res.status(404).json({ error: `Task with id ${id} not found` });
-        }
-
-        const { title, description, completed } = req.body;
-        const updatedTask = { id, title, description, completed };
-        tasks[idx] = updatedTask;
-
-        res.json(updatedTask);
+    if (!title || typeof completed !== 'boolean') {
+        return res.status(400).json({
+            message: 'Invalid request: Title is required and "completed" must be a boolean.'
+        });
     }
-);
 
-//DELETE Method for specific ID.
+    const newId = tasks.length ? tasks[tasks.length - 1].id + 1 : 1;
+
+    const newTask = {
+        id: newId,
+        title: title,
+        description: description || "", 
+        completed: completed
+    };
+
+
+    tasks.push(newTask);
+
+    res.status(201).json(newTask);
+});
+
+app.put('/tasks/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+    const updatedTaskData = req.body;
+
+
+    const taskIndex = tasks.findIndex(t => t.id === taskId);
+
+
+    if (taskIndex === -1) {
+        return res.status(404).json({ message: 'Task ID not found for update.' });
+    }
+
+
+    if (updatedTaskData.title && typeof updatedTaskData.title !== 'string') {
+        return res.status(400).json({ message: 'Invalid title format.' });
+    }
+
+    tasks[taskIndex] = {
+        ...tasks[taskIndex], 
+        ...updatedTaskData, 
+        id: taskId 
+    };
+
+    res.status(200).json(tasks[taskIndex]);
+});
+
 app.delete('/tasks/:id', (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const index = tasks.findIndex(t => t.id === id);
-    if (index === -1) {
-        return res.status(404).json({ error: `Task with id ${id} not found` });
+    const taskId = parseInt(req.params.id);
+
+    const taskIndex = tasks.findIndex(t => t.id === taskId);
+
+    if (taskIndex === -1) {
+        return res.status(404).json({ message: 'Task ID not found for deletion.' });
     }
-    tasks.splice(index, 1);
-    res.status(204).send(); // No content
+
+    tasks.splice(taskIndex, 1);
+
+    res.status(204).send();
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is listening on ${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-module.exports = app;
-
